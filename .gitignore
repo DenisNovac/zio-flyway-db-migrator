@@ -1,0 +1,16 @@
+# idea
+.idea
+
+# vs code and metals
+.metals
+.bloop
+.bsp
+.vscode
+project/project
+project/project/*
+
+# target 
+target
+
+# custom parameters config (with password etc)
+params.conf
