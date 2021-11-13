@@ -1,17 +1,18 @@
-package com.github.denisnovac.jdbc
+package com.github.denisnovac.ziloearn.jdbc
 
-import zio._
-import zio.logging._
+import zio.*
+import zio.logging.*
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.annotation.migration
 import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.MigrationState
+import _root_.com.github.denisnovac.ziloearn.model.DBConfig
 
 object DBMigrator {
 
-  def migrate: ZIO[Has[DBConfig] with Has[Logger[String]], Throwable, Unit] =
+  def migrate: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
     for {
       config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
       _      <- log.info(s"Starting the migration for host: ${config.url}")
@@ -21,7 +22,7 @@ object DBMigrator {
       _ <- log.info(s"Successful migrations: $count")
     } yield ()
 
-  private def migrationEffect: ZIO[Has[DBConfig] with Has[Logger[String]], Throwable, Int] =
+  private def migrationEffect: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Int] =
     for {
       config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
 

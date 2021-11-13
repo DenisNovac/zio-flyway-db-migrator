@@ -1,13 +1,15 @@
-package com.github.denisnovac.jdbc
+package com.github.denisnovac.ziloearn
 
-import zio._
-import zio.console._
+import zio.*
+import zio.console.*
 import zio.config.typesafe.TypesafeConfigSource
 import zio.config.ConfigDescriptor
 import scala.io.Source
-import zio.config._
-import zio.logging._
+import zio.config.*
+import zio.logging.*
 import zio.clock.Clock
+import jdbc.DBMigrator
+import model.DBConfig
 
 object Main extends zio.App {
 
@@ -19,7 +21,7 @@ object Main extends zio.App {
     ) >>> Logging.withRootLoggerName("zio-flyway-db-migrator")
 
   /** A Layer without environment which can throw an error and returns the config */
-  private val configLayer: Layer[ReadError[_], Has[DBConfig]] =
+  private val configLayer: Layer[ReadError[?], Has[DBConfig]] =
     ZIO
       .fromEither(
         TypesafeConfigSource
@@ -29,7 +31,7 @@ object Main extends zio.App {
       .toLayer
 
   /** Actual program with requirements */
-  private def program: ZIO[Has[DBConfig] with Has[Logger[String]], Throwable, Unit] =
+  private def program: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
     for {
       config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
       _      <- DBMigrator.migrate
