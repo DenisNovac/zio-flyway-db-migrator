@@ -1,4 +1,4 @@
-package com.github.denisnovac.ziloearn.model
+package com.github.denisnovac.ziolearn.model
 
 import zio.config.magnolia.descriptor
 import zio.config.ConfigDescriptor

@@ -1,4 +1,4 @@
-package com.github.denisnovac.ziloearn.jdbc
+package com.github.denisnovac.ziolearn.jdbc
 
 import zio.*
 import zio.logging.*
@@ -8,11 +8,28 @@ import scala.jdk.CollectionConverters.*
 import scala.annotation.migration
 import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.MigrationState
-import _root_.com.github.denisnovac.ziloearn.model.DBConfig
+import com.github.denisnovac.ziolearn.model.DBConfig
 
 object DBMigrator {
 
-  def migrate: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
+  private def logValidationErrorsIfAny(flywayConfig: FluentConfiguration): ZIO[Has[Logger[String]], Throwable, Unit] =
+    for {
+      validated <- ZIO(
+                     flywayConfig
+                       .ignoreMigrationPatterns("*:pending")
+                       .load()
+                       .validateWithResult
+                   )
+      _         <- ZIO.when(!validated.validationSuccessful)(
+                     // cats traverse analog for ZIO is foreach
+                     ZIO.foreach(validated.invalidMigrations.asScala)(error => log.error(s"Invalid migration: $error"))
+                   )
+      _         <- ZIO.when(!validated.validationSuccessful)(
+                     ZIO.fail(new Error("Migrations validation failed (see the logs)"))
+                   )
+    } yield ()
+
+  private[jdbc] def migrate: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
     for {
       config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
       _      <- log.info(s"Starting the migration for host: ${config.url}")
@@ -53,22 +70,5 @@ object DBMigrator {
            }
 
     } yield count
-
-  private def logValidationErrorsIfAny(flywayConfig: FluentConfiguration): ZIO[Has[Logger[String]], Throwable, Unit] =
-    for {
-      validated <- ZIO(
-                     flywayConfig
-                       .ignoreMigrationPatterns("*:pending")
-                       .load()
-                       .validateWithResult
-                   )
-      _         <- ZIO.when(!validated.validationSuccessful)(
-                     // cats traverse analog for ZIO is foreach
-                     ZIO.foreach(validated.invalidMigrations.asScala)(error => log.error(s"Invalid migration: $error"))
-                   )
-      _         <- ZIO.when(!validated.validationSuccessful)(
-                     ZIO.fail(new Error("Migrations validation failed (see the logs)"))
-                   )
-    } yield ()
 
 }

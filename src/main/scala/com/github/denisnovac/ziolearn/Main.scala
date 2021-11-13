@@ -1,4 +1,4 @@
-package com.github.denisnovac.ziloearn
+package com.github.denisnovac.ziolearn
 
 import zio.*
 import zio.console.*
@@ -10,6 +10,10 @@ import zio.logging.*
 import zio.clock.Clock
 import jdbc.DBMigrator
 import model.DBConfig
+import com.github.denisnovac.ziolearn.jdbc.DBService
+import zio.blocking.Blocking
+import doobie.util.transactor.Transactor
+import doobie.util.pretty.Block
 
 object Main extends zio.App {
 
@@ -31,18 +35,20 @@ object Main extends zio.App {
       .toLayer
 
   /** Actual program with requirements */
-  private def program: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
+  private def program: ZIO[Has[Logger[String]], Throwable, Unit] =
     for {
-      config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
-      _      <- DBMigrator.migrate
+      _ <- log.info("Startup were successful")
     } yield ()
 
   /** Using the default run method just to add layers to the actual program */
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     program
       .provideLayer(
-        loggingLayer ++ configLayer ++ Console.live
+        Console.live >+> Clock.live >+> Blocking.live >+> configLayer >+> loggingLayer >+> DBService.databaseLayer
       )
       .mapError[Nothing](throwable => throw throwable)
       .map(_ => ExitCode.success)
+
+  val x = Console.live >+> Clock.live >+> Blocking.live >+> configLayer >+> loggingLayer >+> DBService.databaseLayer
+
 }
