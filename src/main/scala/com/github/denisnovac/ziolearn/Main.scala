@@ -6,7 +6,7 @@ import zio.config.typesafe.*
 import zio.config.ZConfig
 import zio.config.ConfigDescriptor
 import zio.config.ReadError
-import com.github.denisnovac.ziolearn.logging.LoggerLayer
+import com.github.denisnovac.ziolearn.logging.AppLogger
 import com.github.denisnovac.ziolearn.config.AppConfig
 import com.github.denisnovac.ziolearn.jdbc.DBLayer
 
@@ -36,9 +36,9 @@ object Main extends zio.interop.catz.CatsApp {
 
   override def run =
     program
-      .provideLayer(
+      .provide(
         ZioCatsLayer.make >+>
-          LoggerLayer.layer >+>
+          AppLogger.logger >+>
           configsLayer >+>
           DBLayer.make
       )
