@@ -18,7 +18,7 @@ object Dependencies {
     val zio        = "2.0.1"
     val zioConfig  = "3.0.2"
     val zioLogging = "2.1.2"
-    val zioInterop = "3.1.1.0"
+    val zioInterop = "3.3.0+12-687b46a7-SNAPSHOT"
   }
 
   val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
