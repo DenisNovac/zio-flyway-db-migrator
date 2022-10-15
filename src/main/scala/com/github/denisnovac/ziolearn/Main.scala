@@ -1,49 +1,32 @@
 package com.github.denisnovac.ziolearn
 
-import zio.*
-import zio.interop.catz.*
-import zio.config.typesafe.*
+import zio._
+import com.github.denisnovac.ziolearn.logging.AppLogger
 import zio.config.ZConfig
+import com.github.denisnovac.ziolearn.config.AppConfig
 import zio.config.ConfigDescriptor
 import zio.config.ReadError
-import com.github.denisnovac.ziolearn.logging.AppLogger
-import com.github.denisnovac.ziolearn.config.AppConfig
-import com.github.denisnovac.ziolearn.jdbc.DBLayer
-
 import java.io.File
-import doobie.util.transactor.Transactor
-import com.github.denisnovac.ziolearn.cats.ZioCatsLayer
-import com.github.denisnovac.ziolearn.config.DBConfig
+import zio.config.typesafe._
 
-object Main extends zio.interop.catz.CatsApp {
+object Main extends ZIOAppDefault {
 
-  private val configsLayer: ZLayer[Any, ReadError[String], DBConfig] =
-    ZLayer {
-      {
-        for {
-          appConfig <- ZIO.service[AppConfig]
-        } yield appConfig.dbConfig
-      }.provide(
-        ZConfig
-          .fromHoconFile(new File(Files.appConfig), implicitly[ConfigDescriptor[AppConfig]])
-      )
-    }
+  private val configLayer: Layer[ReadError[String], AppConfig] =
+    ZConfig.fromHoconFile(new File(Files.appConfig), implicitly[ConfigDescriptor[AppConfig]])
 
-  private def program: ZIO[Any, Nothing, Unit] =
+  private def program: ZIO[AppConfig, Nothing, Unit] =
     for {
-      _ <- ZIO.logInfo("Hello world")
+      appConfig <- ZIO.service[AppConfig]
+      _         <- ZIO.logInfo("Hello world")
+      _         <- ZIO.logInfo(appConfig.toString)
     } yield ()
 
   override def run =
     program
       .provide(
-        ZioCatsLayer.make >+>
-          AppLogger.logger >+>
-          configsLayer >+>
-          DBLayer.make
+        AppLogger.logger ++
+          configLayer
       )
-      .orDie
-      .exitCode
 
 }
 

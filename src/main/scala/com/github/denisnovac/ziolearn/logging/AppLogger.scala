@@ -1,7 +1,7 @@
 package com.github.denisnovac.ziolearn.logging
 
-import zio.*
-import zio.logging.LogFormat.*
+import zio._
+import zio.logging.LogFormat._
 import zio.logging.backend.SLF4J
 
 object AppLogger {
