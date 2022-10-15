@@ -19,6 +19,10 @@ object Dependencies {
     val zioConfig  = "3.0.2"
     val zioLogging = "2.1.2"
     val zioInterop = "3.3.0+12-687b46a7-SNAPSHOT"
+
+    val scalatest      = "3.2.14"
+    val testcontainers = "1.17.5"
+    val weaver         = "0.8.0"
   }
 
   val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
@@ -57,4 +61,12 @@ object Dependencies {
 
   val zioInterop = "dev.zio" %% "zio-interop-cats" % Versions.zioInterop
 
+  val testing = Seq(
+    "com.disneystreaming" %% "weaver-core"    % Versions.weaver         % Test,
+    "com.disneystreaming" %% "weaver-cats"    % Versions.weaver         % Test,
+    "org.scalatest"       %% "scalatest"      % Versions.scalatest      % Test,
+    "org.testcontainers"   % "testcontainers" % Versions.testcontainers % Test,
+    "org.testcontainers"   % "postgresql"     % Versions.testcontainers % Test,
+    "dev.zio"             %% "zio-test"       % Versions.zio            % Test
+  )
 }

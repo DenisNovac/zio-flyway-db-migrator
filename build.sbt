@@ -23,6 +23,8 @@ libraryDependencies ++= Dependencies.zioConfig
 libraryDependencies ++= Dependencies.zioLogging
 libraryDependencies += Dependencies.zioInterop
 
+libraryDependencies ++= Dependencies.testing
+
 // better-monadic-for (implicits in for-comprehension)
 scalacOptions ++= Seq(
   "-source:future"
