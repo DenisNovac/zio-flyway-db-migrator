@@ -4,8 +4,8 @@ import zio.*
 import zio.logging.LogFormat.*
 import zio.logging.backend.SLF4J
 
-object AppLogger {
+object LoggerLayer {
   private val format = timestamp.fixed(32) |-| level |-| label("message", quoted(line))
 
-  val logger: ZLayer[Any, Nothing, Unit] = zio.Runtime.removeDefaultLoggers >>> SLF4J.slf4j
+  val layer: ZLayer[Any, Nothing, Unit] = zio.Runtime.removeDefaultLoggers >>> SLF4J.slf4j
 }
