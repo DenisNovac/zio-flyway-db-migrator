@@ -1,32 +1,16 @@
-# macOS
-.DS_Store
-
-# sbt specific
-dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
-project/local-plugins.sbt
-.history
-.ensime
-.ensime_cache/
-.sbt-scripted/
-local.sbt
-
-# Bloop
-.bsp
-
-# VS Code
-.vscode/
-
-# Metals
-.bloop/
-.metals/
-metals.sbt
-
-# IDEA
+# idea
 .idea
-.idea_modules
-/.worksheet/
+
+# vs code and metals
+.metals
+.bloop
+.bsp
+.vscode
+project/project
+project/project/*
+
+# target 
+target
+
+# custom parameters config (with password etc)
+params.conf

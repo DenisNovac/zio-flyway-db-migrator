@@ -2,11 +2,7 @@ name := "zio-flyway-db-migrator"
 
 version := "0.1"
 
-scalaVersion := "3.2.0"
-
-// for zio-interop
-resolvers +=
-  "Sonatype OSS Snapshots".at("https://oss.sonatype.org/content/repositories/snapshots")
+scalaVersion := "3.1.0"
 
 libraryDependencies += Dependencies.postgresqlDriver
 libraryDependencies ++= Dependencies.flyway
@@ -22,3 +18,7 @@ libraryDependencies += Dependencies.zio
 libraryDependencies ++= Dependencies.zioConfig
 libraryDependencies ++= Dependencies.zioLogging
 libraryDependencies += Dependencies.zioInterop
+
+scalacOptions ++= Seq(
+  "-source:future"
+)
