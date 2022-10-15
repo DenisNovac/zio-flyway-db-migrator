@@ -14,10 +14,10 @@ object DBLayer {
     *   doobie transactor layer for injection
     */
   def make: ZLayer[DBConfig & ZioCats[Task], Throwable, Transactor[Task]] =
-    ZLayer.scoped { // this way we are getting scope = layer livetime (the same way it works before the scope introduction?)
+    ZLayer.fromZIO {
       for {
         _ <- DBMigrator.migrate
-        t <- DBTransactor.make
+        t <- ZIO.scoped(DBTransactor.make)
         _ <- ZIO.logInfo("Migrations and database transactor creation were successful")
       } yield t
     }
