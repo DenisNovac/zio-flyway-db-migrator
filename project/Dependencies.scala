@@ -62,11 +62,10 @@ object Dependencies {
   val zioInterop = "dev.zio" %% "zio-interop-cats" % Versions.zioInterop
 
   val testing = Seq(
-    "com.disneystreaming" %% "weaver-core"    % Versions.weaver         % Test,
-    "com.disneystreaming" %% "weaver-cats"    % Versions.weaver         % Test,
-    "org.scalatest"       %% "scalatest"      % Versions.scalatest      % Test,
-    "org.testcontainers"   % "testcontainers" % Versions.testcontainers % Test,
-    "org.testcontainers"   % "postgresql"     % Versions.testcontainers % Test,
-    "dev.zio"             %% "zio-test"       % Versions.zio            % Test
+    "org.scalatest"     %% "scalatest"      % Versions.scalatest      % Test,
+    "org.testcontainers" % "testcontainers" % Versions.testcontainers % Test,
+    "org.testcontainers" % "postgresql"     % Versions.testcontainers % Test,
+    "dev.zio"           %% "zio-test"       % Versions.zio            % Test,
+    "dev.zio"           %% "zio-test-sbt"   % Versions.zio            % Test
   )
 }
