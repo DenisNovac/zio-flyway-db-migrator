@@ -8,13 +8,13 @@ import scala.jdk.CollectionConverters.*
 import scala.annotation.migration
 import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.MigrationState
-import com.github.denisnovac.ziolearn.model.DBConfig
+import com.github.denisnovac.ziolearn.config.DBConfig
 
-object DBMigrator {
+private[jdbc] object DBMigrator {
 
-  private def logValidationErrorsIfAny(flywayConfig: FluentConfiguration): ZIO[Has[Logger[String]], Throwable, Unit] =
+  private def logValidationErrorsIfAny(flywayConfig: FluentConfiguration): ZIO[Any, Throwable, Unit] =
     for {
-      validated <- ZIO(
+      validated <- ZIO.succeed(
                      flywayConfig
                        .ignoreMigrationPatterns("*:pending")
                        .load()
@@ -22,44 +22,35 @@ object DBMigrator {
                    )
       _         <- ZIO.when(!validated.validationSuccessful)(
                      // cats traverse analog for ZIO is foreach
-                     ZIO.foreach(validated.invalidMigrations.asScala)(error => log.error(s"Invalid migration: $error"))
+                     ZIO.foreach(validated.invalidMigrations.asScala)(error => ZIO.logError(s"Invalid migration: $error"))
                    )
       _         <- ZIO.when(!validated.validationSuccessful)(
                      ZIO.fail(new Error("Migrations validation failed (see the logs)"))
                    )
     } yield ()
 
-  private[jdbc] def migrate: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Unit] =
+  private def migrationEffect(config: DBConfig): ZIO[Any, Throwable, Int] =
     for {
-      config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
-      _      <- log.info(s"Starting the migration for host: ${config.url}")
-      count  <- migrationEffect
 
-      // _ <- ZIO.when(count < 1)(ZIO.fail(new Error("No migrations were executed")))
-      _ <- log.info(s"Successful migrations: $count")
-    } yield ()
-
-  private def migrationEffect: ZIO[Has[DBConfig] & Has[Logger[String]], Throwable, Int] =
-    for {
-      config <- ZIO.accessM[Has[DBConfig]](c => ZIO.succeed(c.get))
-
-      flywayConfig = Flyway.configure
-                       .loggers("log4j2")
-                       .dataSource(
-                         config.url,
-                         config.user,
-                         config.password
-                       )
-                       .group(true)
-                       .outOfOrder(false)
-                       .locations(config.migrationsLocation)
-                       .failOnMissingLocations(true)
-                       .baselineOnMigrate(true)
+      flywayConfig <- ZIO.succeed(
+                        Flyway.configure
+                          .loggers("log4j2")
+                          .dataSource(
+                            config.url,
+                            config.user,
+                            config.password
+                          )
+                          .group(true)
+                          .outOfOrder(false)
+                          .locations(config.migrationsLocation)
+                          .failOnMissingLocations(true)
+                          .baselineOnMigrate(true)
+                      )
 
       _ <- logValidationErrorsIfAny(flywayConfig)
-      _ <- log.info("Migrations validation successful")
+      _ <- ZIO.logInfo("Migrations validation successful")
 
-      count <- ZIO(flywayConfig.load().migrate().migrationsExecuted)
+      count <- ZIO.succeed(flywayConfig.load().migrate().migrationsExecuted)
 
       // fail for any statuses except success (in case of missing migration files, etc)
       _ <- ZIO.foreach(flywayConfig.load().info().all().toList) { i =>
@@ -70,5 +61,15 @@ object DBMigrator {
            }
 
     } yield count
+
+  private[jdbc] def migrate: ZIO[DBConfig, Throwable, Unit] =
+    for {
+      config <- ZIO.service[DBConfig]
+      _      <- ZIO.logInfo(s"Starting the migration for host: ${config.url}")
+      count  <- migrationEffect(config)
+
+      // _ <- ZIO.when(count < 1)(ZIO.fail(new Error("No migrations were executed")))
+      _ <- ZIO.logInfo(s"Successful migrations: $count")
+    } yield ()
 
 }

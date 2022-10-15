@@ -1,54 +1,52 @@
 package com.github.denisnovac.ziolearn
 
 import zio.*
-import zio.console.*
-import zio.config.typesafe.TypesafeConfigSource
+import zio.interop.catz.*
+import zio.config.typesafe.*
+import zio.config.ZConfig
 import zio.config.ConfigDescriptor
-import scala.io.Source
-import zio.config.*
-import zio.logging.*
-import zio.clock.Clock
-import jdbc.DBMigrator
-import model.DBConfig
-import com.github.denisnovac.ziolearn.jdbc.DBService
-import zio.blocking.Blocking
+import zio.config.ReadError
+import com.github.denisnovac.ziolearn.logging.LoggerLayer
+import com.github.denisnovac.ziolearn.config.AppConfig
+import com.github.denisnovac.ziolearn.jdbc.DBLayer
+
+import java.io.File
 import doobie.util.transactor.Transactor
-import doobie.util.pretty.Block
+import com.github.denisnovac.ziolearn.cats.ZioCatsLayer
+import com.github.denisnovac.ziolearn.config.DBConfig
 
-object Main extends zio.App {
+object Main extends zio.interop.catz.CatsApp {
 
-  /** Layer for logging */
-  private val loggingLayer: ZLayer[Console & Clock, Nothing, Has[Logger[String]]] =
-    Logging.console(
-      logLevel = LogLevel.Info,
-      format = LogFormat.ColoredLogFormat()
-    ) >>> Logging.withRootLoggerName("zio-flyway-db-migrator")
-
-  /** A Layer without environment which can throw an error and returns the config */
-  private val configLayer: Layer[ReadError[?], Has[DBConfig]] =
-    ZIO
-      .fromEither(
-        TypesafeConfigSource
-          .fromHoconFile(new java.io.File("src/main/resources/application.conf"))
-          .flatMap(source => read[DBConfig](implicitly[ConfigDescriptor[DBConfig]].from(source)))
+  private val configsLayer: ZLayer[Any, ReadError[String], DBConfig] =
+    ZLayer {
+      {
+        for {
+          appConfig <- ZIO.service[AppConfig]
+        } yield appConfig.dbConfig
+      }.provide(
+        ZConfig
+          .fromHoconFile(new File(Files.appConfig), implicitly[ConfigDescriptor[AppConfig]])
       )
-      .toLayer
+    }
 
-  /** Actual program with requirements */
-  private def program: ZIO[Has[Logger[String]], Throwable, Unit] =
+  private def program: ZIO[Any, Nothing, Unit] =
     for {
-      _ <- log.info("Startup were successful")
+      _ <- ZIO.logInfo("Hello world")
     } yield ()
 
-  /** Using the default run method just to add layers to the actual program */
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
+  override def run =
     program
       .provideLayer(
-        Console.live >+> Clock.live >+> Blocking.live >+> configLayer >+> loggingLayer >+> DBService.databaseLayer
+        ZioCatsLayer.make >+>
+          LoggerLayer.layer >+>
+          configsLayer >+>
+          DBLayer.make
       )
-      .mapError[Nothing](throwable => throw throwable)
-      .map(_ => ExitCode.success)
+      .orDie
+      .exitCode
 
-  val x = Console.live >+> Clock.live >+> Blocking.live >+> configLayer >+> loggingLayer >+> DBService.databaseLayer
+}
 
+object Files {
+  val appConfig = "src/main/resources/application.conf"
 }

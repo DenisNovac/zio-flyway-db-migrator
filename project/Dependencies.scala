@@ -3,22 +3,22 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val cats       = "2.6.1"
-    val catsEffect = "3.2.9"
+    val cats       = "2.8.0"
+    val catsEffect = "3.4-148221d"
 
-    val doobie = "1.0.0-RC1"
+    val doobie = "1.0.0-RC2"
 
-    val flyway = "8.0.4"
+    val flyway = "9.4.0"
 
-    val log4j   = "2.14.1"
-    val logback = "1.2.7"
+    val log4j   = "2.19.0"
+    val logback = "1.4.4"
 
-    val postgresql = "42.3.1"
+    val postgresql = "42.5.0"
 
-    val zio        = "1.0.12"
-    val zioConfig  = "1.0.10"
-    val zioLogging = "0.5.13"
-    val zioInterop = "3.1.1.0"
+    val zio        = "2.0.1"
+    val zioConfig  = "3.0.2"
+    val zioLogging = "2.1.2"
+    val zioInterop = "3.3.0+12-687b46a7-SNAPSHOT"
   }
 
   val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
