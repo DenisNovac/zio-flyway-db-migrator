@@ -21,8 +21,8 @@ object StatusRepoSuit extends SharedPostgresContainer {
 
     test("CRUD for StatusRepo") {
 
-      val expectedStatus = Status(100, "test", Instant.now())
-      val modifiedStatus = Status(100, "test2", Instant.now())
+      val expectedStatus = Status(100, "StatusRepoSuitTest", Instant.now())
+      val modifiedStatus = Status(100, "StatusRepoSuitTest2", Instant.now())
 
       val crud = for {
         _ <- urepo.upsert(User(100, "test", "test", Instant.now(), Instant.now()))
@@ -45,8 +45,8 @@ object StatusRepoSuit extends SharedPostgresContainer {
       for {
         (given Async[Task]) <- ZIO.service[Async[Task]]
         xa                  <- ZIO.service[Transactor[Task]]
-        _                   <- crud.transact(xa)
-      } yield assertTrue(true)
+        r                   <- crud.transact(xa)
+      } yield r
     }
 
   }
