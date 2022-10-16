@@ -21,7 +21,9 @@ object StatusRepo {
     override def upsert(status: Status): ConnectionIO[Status] =
       sql"""INSERT INTO statuses VALUES (
       ${status.uId}, ${status.uStatus}, ${status.updatedAt}
-    ) ON CONFLICT UPDATE
+    ) ON CONFLICT(u_id) DO UPDATE SET
+      u_status = ${status.uStatus},
+      updated_at = ${status.updatedAt}
     """.updateWithLogHandler(LogHandler.jdkLogHandler).run.map(_ => status)
 
     override def delete(id: Int): doobie.ConnectionIO[Unit] =

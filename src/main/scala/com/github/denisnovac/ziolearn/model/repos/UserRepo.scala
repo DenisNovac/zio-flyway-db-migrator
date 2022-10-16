@@ -24,7 +24,10 @@ object UserRepo {
     override def upsert(user: User): ConnectionIO[User] =
       sql"""INSERT INTO users VALUES (
       ${user.uId}, ${user.uKey}, ${user.uValue}, ${user.createdAt}, ${user.updatedAt}
-    ) ON CONFLICT UPDATE
+    ) ON CONFLICT(u_id) DO UPDATE SET
+      u_key = ${user.uKey},
+      u_value = ${user.uValue},
+      updated_at = ${user.updatedAt}
     """.updateWithLogHandler(LogHandler.jdkLogHandler).run.map(_ => user)
 
     override def delete(id: Int): doobie.ConnectionIO[Unit] =
