@@ -12,7 +12,9 @@ import cats.effect.kernel.Async
 import doobie.util.log.LogHandler
 import com.github.denisnovac.ziolearn.logging.LoggerLayer
 
-abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[Task] & LogHandler] {
+type SharedPostgresContainerEnvironment = Async[Task] & Transactor[Task] & LogHandler
+
+abstract class SharedPostgresContainer extends ZIOSpec[SharedPostgresContainerEnvironment] {
 
   private val container: ZLayer[Any, Nothing, PostgreSQLContainer[Nothing]] =
     ZLayer.scoped(
@@ -45,7 +47,10 @@ abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[
   private val asyncLayer: ZLayer[Any, Nothing, ZioCats[Task]] =
     ZioCatsLayer.make(Runtime.default)
 
-  override val bootstrap: ZLayer[Scope, Any, Environment] =
-    container >+> configLayer >+> asyncLayer >+> LoggerLayer.make(Runtime.default) >+> DBLayer.make
+  private val loggerLayer: ZLayer[Any, Nothing, LogHandler] =
+    LoggerLayer.make(Runtime.default)
+
+  override val bootstrap: ZLayer[Any, Any, SharedPostgresContainerEnvironment] =
+    container >+> configLayer >+> asyncLayer >+> loggerLayer >+> DBLayer.make
 
 }
