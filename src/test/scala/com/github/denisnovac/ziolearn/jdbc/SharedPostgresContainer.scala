@@ -17,14 +17,14 @@ abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[
   private val container: ZLayer[Any, Nothing, PostgreSQLContainer[Nothing]] =
     ZLayer.scoped(
       ZIO.acquireRelease(
-        ZIO.debug("Opening Postgresql container") *>
-          ZIO.succeed(new PostgreSQLContainer("postgres:alpine")).map { c =>
-            c.start()
-            c
-          }
+        ZIO.succeed(new PostgreSQLContainer("postgres:alpine")).flatMap { container =>
+          ZIO.succeed(container.start()) *>
+            ZIO.debug(s"Opened PostgreSQL container ${container.getJdbcUrl()}") *>
+            ZIO.succeed(container)
+        }
       )(container =>
-        ZIO.succeed(container.stop) *>
-          ZIO.debug("Container stopped")
+        ZIO.debug(s"Stopping PostgreSQL container ${container.getJdbcUrl()}") *>
+          ZIO.succeed(container.stop)
       )
     )
 
