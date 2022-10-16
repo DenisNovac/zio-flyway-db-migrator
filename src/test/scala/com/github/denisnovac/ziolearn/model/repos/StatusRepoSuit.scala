@@ -11,20 +11,18 @@ import com.github.denisnovac.ziolearn.model.*
 import java.time.Instant
 import doobie.implicits.*
 import cats.effect.kernel.Async
+import doobie.util.log.LogHandler
+import doobie.ConnectionIO
 
 object StatusRepoSuit extends SharedPostgresContainer {
 
-  override def spec: Spec[Transactor[Task] & Async[Task] & (TestEnvironment & Scope), Any] = {
-
-    val repo  = StatusRepo.make
-    val urepo = UserRepo.make
-
+  override def spec: Spec[Transactor[Task] & Async[Task] & LogHandler & (TestEnvironment & Scope), Any] =
     test("CRUD for StatusRepo") {
 
       val expectedStatus = Status(100, "StatusRepoSuitTest", Instant.now())
       val modifiedStatus = Status(100, "StatusRepoSuitTest2", Instant.now())
 
-      val crud = for {
+      def crud(repo: StatusRepo[ConnectionIO], urepo: UserRepo[ConnectionIO]) = for {
         _ <- urepo.upsert(User(100, "test", "test", Instant.now(), Instant.now()))
 
         e  <- repo.upsert(expectedStatus)
@@ -45,10 +43,10 @@ object StatusRepoSuit extends SharedPostgresContainer {
       for {
         (given Async[Task]) <- ZIO.service[Async[Task]]
         xa                  <- ZIO.service[Transactor[Task]]
-        r                   <- crud.transact(xa)
+        repo                <- StatusRepo.make
+        urepo               <- UserRepo.make
+        r                   <- crud(repo, urepo).transact(xa)
       } yield r
     }
-
-  }
 
 }

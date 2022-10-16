@@ -1,5 +1,6 @@
 package com.github.denisnovac.ziolearn.model.repos
 
+import zio.*
 import com.github.denisnovac.ziolearn.model.User
 import doobie.ConnectionIO
 import doobie.*
@@ -14,24 +15,36 @@ trait UserRepo[F[_]] {
 }
 
 object UserRepo {
-  def make = new UserRepo[ConnectionIO] {
-    override def read(id: Int): ConnectionIO[Option[User]] =
-      sql"SELECT * FROM users WHERE u_id = $id".queryWithLogHandler[User](LogHandler.jdkLogHandler).option
+  def make: ZIO[LogHandler, Nothing, UserRepo[ConnectionIO]] =
+    for {
+      logHandler <- ZIO.service[LogHandler]
+    } yield new UserRepo[ConnectionIO] {
+      override def read(id: Int): ConnectionIO[Option[User]] =
+        sql"SELECT * FROM users WHERE u_id = $id"
+          .queryWithLogHandler[User](logHandler)
+          .option
 
-    override def lookup(uKey: String): ConnectionIO[Option[User]] =
-      sql"SELECT * FROM users WHERE u_key = $uKey".queryWithLogHandler[User](LogHandler.jdkLogHandler).option
+      override def lookup(uKey: String): ConnectionIO[Option[User]] =
+        sql"SELECT * FROM users WHERE u_key = $uKey"
+          .queryWithLogHandler[User](logHandler)
+          .option
 
-    override def upsert(user: User): ConnectionIO[User] =
-      sql"""INSERT INTO users VALUES (
+      override def upsert(user: User): ConnectionIO[User] =
+        sql"""INSERT INTO users VALUES (
       ${user.uId}, ${user.uKey}, ${user.uValue}, ${user.createdAt}, ${user.updatedAt}
     ) ON CONFLICT(u_id) DO UPDATE SET
       u_key = ${user.uKey},
       u_value = ${user.uValue},
       updated_at = ${user.updatedAt}
-    """.updateWithLogHandler(LogHandler.jdkLogHandler).run.map(_ => user)
+    """.updateWithLogHandler(logHandler)
+          .run
+          .map(_ => user)
 
-    override def delete(id: Int): doobie.ConnectionIO[Unit] =
-      sql"DELETE FROM users WHERE u_id = $id".updateWithLogHandler(LogHandler.jdkLogHandler).run.map(_ => ())
+      override def delete(id: Int): doobie.ConnectionIO[Unit] =
+        sql"DELETE FROM users WHERE u_id = $id"
+          .updateWithLogHandler(logHandler)
+          .run
+          .map(_ => ())
 
-  }
+    }
 }

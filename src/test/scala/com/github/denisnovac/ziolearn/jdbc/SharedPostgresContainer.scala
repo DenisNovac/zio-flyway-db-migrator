@@ -9,8 +9,10 @@ import zio.test.*
 import com.github.denisnovac.ziolearn.cats.ZioCatsLayer
 import com.github.denisnovac.ziolearn.cats.ZioCatsLayer.ZioCats
 import cats.effect.kernel.Async
+import doobie.util.log.LogHandler
+import com.github.denisnovac.ziolearn.logging.LoggerLayer
 
-abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[Task]] {
+abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[Task] & LogHandler] {
 
   private val container: ZLayer[Any, Nothing, PostgreSQLContainer[Nothing]] =
     ZLayer.scoped(
@@ -44,6 +46,6 @@ abstract class SharedPostgresContainer extends ZIOSpec[Async[Task] & Transactor[
     ZioCatsLayer.make(Runtime.default)
 
   override val bootstrap: ZLayer[Scope, Any, Environment] =
-    container >+> configLayer >+> asyncLayer >+> DBLayer.make
+    container >+> configLayer >+> asyncLayer >+> LoggerLayer.make(Runtime.default) >+> DBLayer.make
 
 }

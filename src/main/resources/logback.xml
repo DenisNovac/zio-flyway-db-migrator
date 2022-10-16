@@ -9,6 +9,9 @@
     <root level="info">
         <appender-ref ref="console"/>
     </root>
+    
+    <logger name="com.github.dockerjava" level="error"/>
+    <logger name="org.testcontainers" level="error"/>
 
     <plugin>
         <groupId>org.flywaydb</groupId>
@@ -17,6 +20,4 @@
             <logging>error</logging>
         </configuration>
     </plugin>
-
-
 </configuration>

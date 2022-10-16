@@ -38,7 +38,7 @@ object Main extends zio.interop.catz.CatsApp {
     program
       .provideLayer(
         ZioCatsLayer.make >+>
-          LoggerLayer.layer >+>
+          LoggerLayer.make >+>
           configsLayer >+>
           DBLayer.make
       )
