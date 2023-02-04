@@ -2,7 +2,13 @@ name := "zio-flyway-db-migrator"
 
 version := "0.1"
 
-scalaVersion := "3.2.0"
+scalaVersion := "3.3.0-RC2"
+
+scalacOptions ++= Seq(
+  "-Wunused:imports",
+  "-Wunused:privates",
+  "-Wunused:locals"
+)
 
 // for zio-interop
 resolvers +=

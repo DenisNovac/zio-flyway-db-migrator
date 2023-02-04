@@ -8,22 +8,23 @@ import zio.Task
 import zio.*
 import zio.test.*
 import com.github.denisnovac.ziolearn.model.*
-import java.time.Instant
 import doobie.implicits.*
 import cats.effect.kernel.Async
 import doobie.util.log.LogHandler
 import doobie.ConnectionIO
 
-object StatusRepoSuit extends SharedPostgresContainer {
+import com.github.denisnovac.ziolearn.util.TimeUtils
+
+object StatusRepoSuit extends SharedPostgresContainer with TimeUtils {
 
   override def spec: Spec[Transactor[Task] & Async[Task] & LogHandler & (TestEnvironment & Scope), Any] =
     test("CRUD for StatusRepo") {
 
-      val expectedStatus = Status(100, "StatusRepoSuitTest", Instant.now())
-      val modifiedStatus = Status(100, "StatusRepoSuitTest2", Instant.now())
+      val expectedStatus = Status(100, "StatusRepoSuitTest", timeNow())
+      val modifiedStatus = Status(100, "StatusRepoSuitTest2", timeNow())
 
       def crud(repo: StatusRepo[ConnectionIO], urepo: UserRepo[ConnectionIO]) = for {
-        _ <- urepo.upsert(User(100, "test", "test", Instant.now(), Instant.now()))
+        _ <- urepo.upsert(User(100, "test", "test", timeNow(), timeNow()))
 
         e  <- repo.upsert(expectedStatus)
         er <- repo.read(100)

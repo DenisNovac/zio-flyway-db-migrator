@@ -9,11 +9,10 @@ import zio.config.ReadError
 import com.github.denisnovac.ziolearn.logging.LoggerLayer
 import com.github.denisnovac.ziolearn.config.AppConfig
 import com.github.denisnovac.ziolearn.jdbc.DBLayer
-
-import java.io.File
-import doobie.util.transactor.Transactor
 import com.github.denisnovac.ziolearn.cats.ZioCatsLayer
 import com.github.denisnovac.ziolearn.config.DBConfig
+
+import java.io.File
 
 object Main extends zio.interop.catz.CatsApp {
 

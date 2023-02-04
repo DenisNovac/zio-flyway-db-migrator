@@ -1,7 +1,6 @@
 package com.github.denisnovac.ziolearn.jdbc
 
 import zio.*
-import zio.interop.catz.*
 import com.github.denisnovac.ziolearn.config.DBConfig
 import org.testcontainers.containers.PostgreSQLContainer
 import doobie.util.transactor.Transactor
