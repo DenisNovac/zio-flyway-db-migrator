@@ -4,10 +4,8 @@ import zio.*
 import zio.logging.LogFormat.*
 import zio.logging.backend.SLF4J
 import doobie.util.log.LogHandler
-import doobie.util.log.LogEvent
 
 object LoggerLayer {
-  private val format = timestamp.fixed(32) |-| level |-| label("message", quoted(line))
 
   /** Copypasterd from doobie's default LogHandler.jdkLogHandler
     */

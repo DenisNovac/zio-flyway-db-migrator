@@ -6,7 +6,6 @@ import doobie.ConnectionIO
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import cats.effect.Sync
-import cats.implicits.*
 import zio.*
 import UserStatusService.*
 import UserStatusService.UserStatusServiceErrors.*

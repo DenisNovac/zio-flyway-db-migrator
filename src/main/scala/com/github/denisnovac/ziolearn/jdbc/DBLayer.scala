@@ -1,7 +1,6 @@
 package com.github.denisnovac.ziolearn.jdbc
 
 import zio.*
-import zio.logging.*
 import doobie.util.transactor.Transactor
 import com.github.denisnovac.ziolearn.config.DBConfig
 import com.github.denisnovac.ziolearn.cats.ZioCatsLayer.ZioCats

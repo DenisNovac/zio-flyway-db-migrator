@@ -5,11 +5,7 @@ import zio.interop.catz.*
 import com.github.denisnovac.ziolearn.config.DBConfig
 import com.github.denisnovac.ziolearn.cats.ZioCatsLayer.ZioCats
 import doobie.hikari.HikariTransactor
-import cats.effect.kernel.Sync
 import doobie.*
-import doobie.implicits.*
-import doobie.hikari.*
-import cats.implicits.*
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.effect.kernel.Resource
