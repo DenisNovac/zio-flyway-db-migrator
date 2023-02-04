@@ -1,4 +1,5 @@
 package com.github.denisnovac.ziolearn.cats
+
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import zio.*
