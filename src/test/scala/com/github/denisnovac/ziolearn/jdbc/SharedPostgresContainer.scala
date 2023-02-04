@@ -14,21 +14,19 @@ import com.github.denisnovac.ziolearn.logging.LoggerLayer
 
 type SharedPostgresContainerEnvironment = Async[Task] & Transactor[Task] & LogHandler
 
-abstract class SharedPostgresContainer extends ZIOSpec[SharedPostgresContainerEnvironment] {
-
-  private val container: ZLayer[Any, Nothing, PostgreSQLContainer[Nothing]] =
-    ZLayer.scoped(
-      ZIO.acquireRelease(
-        ZIO.succeed(new PostgreSQLContainer("postgres:alpine")).flatMap { container =>
-          ZIO.succeed(container.start()) *>
-            ZIO.debug(s"Opened PostgreSQL container ${container.getJdbcUrl()}") *>
-            ZIO.succeed(container)
-        }
-      )(container =>
-        ZIO.debug(s"Stopping PostgreSQL container ${container.getJdbcUrl()}") *>
-          ZIO.succeed(container.stop)
-      )
+private object Layer {
+  private val container = ZLayer.scoped(
+    ZIO.acquireRelease(
+      ZIO.succeed(new PostgreSQLContainer("postgres:alpine")).flatMap { container =>
+        ZIO.succeed(container.start()) *>
+          ZIO.debug(s"Opened PostgreSQL container ${container.getJdbcUrl()}") *>
+          ZIO.succeed(container)
+      }
+    )(container =>
+      ZIO.debug(s"Stopping PostgreSQL container ${container.getJdbcUrl()}") *>
+        ZIO.succeed(container.stop)
     )
+  )
 
   private val configLayer: ZLayer[PostgreSQLContainer[Nothing], Nothing, DBConfig] =
     ZLayer {
@@ -50,7 +48,15 @@ abstract class SharedPostgresContainer extends ZIOSpec[SharedPostgresContainerEn
   private val loggerLayer: ZLayer[Any, Nothing, LogHandler] =
     LoggerLayer.make(Runtime.default)
 
-  override val bootstrap: ZLayer[Any, Any, SharedPostgresContainerEnvironment] =
-    container >+> configLayer >+> asyncLayer >+> loggerLayer >+> DBLayer.make
+  private val catsLayer: ZLayer[Any, Nothing, ZioCats[Task]] = ZioCatsLayer.make(Runtime.default)
+
+  val layer: ZLayer[Any, Throwable, SharedPostgresContainerEnvironment] =
+    container >+> configLayer >+> catsLayer >+> asyncLayer >+> loggerLayer >+> DBLayer.make
+
+}
+
+abstract class SharedPostgresContainer extends ZIOSpec[SharedPostgresContainerEnvironment] {
+
+  override val bootstrap: ZLayer[Any, Any, SharedPostgresContainerEnvironment] = Layer.layer
 
 }
