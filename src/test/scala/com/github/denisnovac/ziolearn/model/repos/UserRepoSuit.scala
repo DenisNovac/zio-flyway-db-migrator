@@ -9,16 +9,17 @@ import zio.Task
 import zio.*
 import zio.test.*
 import com.github.denisnovac.ziolearn.model.*
-import java.time.Instant
 import doobie.implicits.*
 import cats.effect.kernel.Async
 import doobie.util.log.LogHandler
 
-object UserRepoSuit extends SharedPostgresContainer {
+import com.github.denisnovac.ziolearn.util.TimeUtils
+
+object UserRepoSuit extends SharedPostgresContainer with TimeUtils {
   override def spec: Spec[Transactor[Task] & Async[Task] & LogHandler & (TestEnvironment & Scope), Any] =
     test("CRUD for UserRepo") {
 
-      val expectedUser     = User(1, "UserRepoSuitTest", "test", Instant.now(), Instant.now())
+      val expectedUser     = User(1, "UserRepoSuitTest", "test", timeNow(), timeNow())
       val modifiedExpected = expectedUser.copy(uValue = "test2")
 
       def crud(repo: UserRepo[ConnectionIO]) = for {
